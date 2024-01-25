@@ -1,0 +1,37 @@
+Chair
+Dog
+Picture
+Japanese style closet
+School cafeteria
+Student union
+River
+Tree
+Classroom
+Car
+Cell Phone
+Chalkboard
+Computer
+Bicycle
+Photograph
+Sofa
+Gym
+Chest, Drawers
+Desk
+Table
+Telephone
+Door
+Toilet, Restroom
+Clock, Watch
+Place
+Cat
+Bus
+Video
+Person
+Futon
+Bed
+Room
+Bookshelf
+Window
+Thing (tangible)
+Mountain
+Room

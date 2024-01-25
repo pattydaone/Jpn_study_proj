@@ -1,0 +1,15 @@
+One; びと（つ）・イチ
+Two; ふた（つ）・ニ
+Three; ひっ（つ）・サン
+Four; よ、よん、よっ（つ）・シ
+Five; いつ（つ）・ゴ
+Six; むっ（つ）・ロク、ロッ
+Seven; なな（つ）・シチ
+Eight; やっ（つ）・ハチ、ハッ
+Nine; ここの（つ）・キュウ、ク
+Ten; とお・ジュウ、ジュッ
+Hundred; ヒャク、ビャク、ピャク
+Thousand; セン、ゼン
+Ten thousand; マン
+Yen; エン
+Store, shop; みせ・テン

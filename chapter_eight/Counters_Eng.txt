@@ -1,0 +1,7 @@
+Yen (Japanese currency)
+Counter for floors of a building
+Counter for bound objects
+General counter
+Counter for fish and small four-legged animals
+Counter for long, cylindrical objects
+Counter for thin objects

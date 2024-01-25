@@ -1,0 +1,7 @@
+One minute
+Three minutes
+Four minutes
+Six minutes
+Eight minutes
+Ten minutes
+How many minutes?

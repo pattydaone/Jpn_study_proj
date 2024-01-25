@@ -1,0 +1,13 @@
+One o'clock
+Two o'clock
+Three o'clock
+Four o'clock
+Five o'clock
+Six o'clock
+Seven o'clock
+Eight o'clock
+Nine o'clock
+Ten o'clock
+Eleven o'clock
+Twelve o'clock
+Half past
