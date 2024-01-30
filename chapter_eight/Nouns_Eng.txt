@@ -23,7 +23,7 @@ Sweater
 Sale
 Birthday
 Basement
-T-shirt
+T shirt
 Formal dress
 Tie
 Necklace
@@ -32,7 +32,7 @@ Trousers, shorts
 Handbag
 Clothing
 Woman's clothing
-Women's clothing section
+Woman's clothing section
 Blouse
 Stationery
 Stationery section
@@ -40,4 +40,4 @@ Belt
 Hat, cap
 Store, shop
 Ring
-Dress (worn on informal occasions)
+Dress (informal)
