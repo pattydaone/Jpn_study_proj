@@ -228,24 +228,14 @@ class MultipleChoice:
         self.turn_label = ttk.Label(mainframe, textvariable=self.turn_disp)
         self.question_label = ttk.Label(mainframe, textvariable=self.q_disp)
         self.correct_label = ttk.Label(mainframe, textvariable=self.correct_status)
-        self.again_label = ttk.Label(mainframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
         self.uni_quit = ttk.Button(mainframe, text='Quit multiple choice', command=self.destroy_mc)
-        self.end_b1 = ttk.Button(mainframe, text='Yes', command=self.start_mc)
-        self.end_b2 = ttk.Button(mainframe, text='No', command=self.destroy_mc)
         self.widget_lst = [self.b1, self.b2, self.b3, self.b4, self.turn_label, self.question_label, self.correct_label,
                            self.uni_quit]
-        self.end_widget_lst = [self.end_b1, self.end_b2, self.again_label]
+        self.end_widget_lst = []
         self.cycle = 0
 
     def start_mc(self):
-        if len(self.end_widget_lst) > 0:
-            self.amnt_correct, self.amnt_incorrect, self.turn_count = 0, 0, 0
-            for i in self.end_widget_lst:
-                i.destroy()
-            self.end_widget_lst = []
         self.answer_dict = deepcopy(self.referral_dict)
-        if not self.main_dict:
-            self.main_dict = deepcopy(self.referral_dict)
         self.turn_count += 1
         self.cycle += 1
 
@@ -312,16 +302,31 @@ class MultipleChoice:
         if len(self.main_dict) > 0:
             self.start_mc()
         else:
-            self.again_label.grid(column=1, row=9, columnspan=4, sticky=W)
-            self.end_b1.grid(column=2, row=10, sticky=W)
-            self.end_b2.grid(column=3, row=10)
-            self.widget_lst.extend(self.end_widget_lst)
+            self.again_label = ttk.Label(mainframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
+            self.end_b1 = ttk.Button(mainframe, text='Yes', command=self.start_from_end)
+            self.end_b2 = ttk.Button(mainframe, text='No', command=self.destroy_mc)
+
+            self.end_widget_lst.extend([self.again_label, self.end_b1, self.end_b2])
             self.b1.state(['disabled'])
             self.b2.state(['disabled'])
             self.b3.state(['disabled'])
             self.b4.state(['disabled'])
 
+            self.again_label.grid(column=1, row=9, columnspan=4, sticky=W)
+            self.end_b1.grid(column=2, row=10, sticky=W)
+            self.end_b2.grid(column=3, row=10)
+
+    def start_from_end(self):
+        for i in self.end_widget_lst:
+            i.destroy()
+        self.main_dict = deepcopy(self.referral_dict)
+        self.amnt_correct, self.amnt_incorrect, self.turn_count = 0, 0, 0
+        self.start_mc()
+
     def destroy_mc(self):
+        for i in self.end_widget_lst:
+            i.destroy()
+
         for i in self.widget_lst:
             i.destroy()
         pref_done.state(['!disabled'])
@@ -523,9 +528,10 @@ class Type:
             mainframe.update()
         
         if len(self.main_dict) == 0:
-            self.post_game_label = ttk.Label(mainframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.reference_dict))*100}%!\nWould you like to play again?')
             self.post_game_label.grid(column=1, row=7, columnspan=5, rowspan=3, sticky=(N, W))
             self.play_again = ttk.Button(mainframe, text='Yes', command=self.get_q_a)
+            self.amnt_correct = 0
+            self.amnt_incorrect = 0
             self.play_again.grid(column=1, row=10, sticky=W)
             self.dont_play_again = ttk.Button(mainframe, text='No', command=self.destroy_type)
             self.dont_play_again.grid(column=2, row=10, sticky=W)
