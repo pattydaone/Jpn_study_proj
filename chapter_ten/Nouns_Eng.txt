@@ -1,0 +1,55 @@
+Leg, foot
+Head
+Smart, intelligent
+Older brother (the speaker's)
+Older sister (the speaker's)
+Younger sister (the speaker's
+Younger sister (someone else's)
+Mother (someone else's)
+Wife (someone else's)
+Child (someone else's)
+Grandfather (someone else's)
+Father (someone else's)
+Younger brother (the speaker's)
+Younger brother (someone else's)
+Male
+Man
+Older brother (someone else's)
+Older sister (someone else's)
+Grandmother (someone else's)
+Female
+Woman
+Businessperson
+Face
+Family, speaker's family
+Hair
+Sibling(s)
+Mouth
+Marriage
+Child
+Boy
+Girl
+Family (someone else's)
+Siblings (someone else's)
+Husband (someone else's)
+Child
+Husband (the speaker's)
+Back (part of body), Height (of a person)
+Personality
+Grandfather (the speaker's)
+Grandmother (the speaker's)
+Father (the speaker's)
+Wife (the speaker's)
+Hand, arm
+Age
+Elder, older
+Younger
+Nose
+Mother (the speaker's)
+Only child
+Blonde
+Center, middle, middle child
+Ear
+Eye
+Glasses
+Husband (someone else's, if you know them)

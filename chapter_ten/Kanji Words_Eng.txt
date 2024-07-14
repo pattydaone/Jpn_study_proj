@@ -1,0 +1,31 @@
+Man
+Boy
+Woman
+Girl
+Eye
+th
+Mouth
+Ear
+Leg, foot
+Arm, hand
+Skilled
+Father (speaker's)
+Father (someone else's)
+Mother (speaker's)
+Mother (someone else's)
+Older sister (speaker's)
+Older sister (someone else's)
+Older brother (speaker's)
+Older brother (someone else's)
+Younger sister (speakers)
+Younger brother (speaker's)
+Siblings
+Family
+My home
+Parents
+Child (someone else's)
+Only Child
+Elementary school student
+Elementary school
+Middle school student
+Middle school

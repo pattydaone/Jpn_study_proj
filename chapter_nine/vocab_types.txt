@@ -5,3 +5,4 @@ Adjectives
 Prefix
 Expressions
 Kanji
+Kanji Words

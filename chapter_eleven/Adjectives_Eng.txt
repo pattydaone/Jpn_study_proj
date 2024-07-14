@@ -1,0 +1,11 @@
+Warm (air temperature)
+Hot (air temperature)
+Cold
+Cool
+Strong
+Early
+Humid
+Weak
+Bad
+Unpleasant, yuck
+Sudden

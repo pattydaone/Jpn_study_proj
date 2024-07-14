@@ -1,0 +1,27 @@
+Weather
+Tempura
+Air tempurature
+Rain
+Rain shower
+Snow
+Wind
+To become sunny
+Warm
+tempurature
+What tempurature?
+East
+West
+South
+Southeast
+Southwest
+North
+Northeast
+Northwest
+Cold
+Hot
+A lot
+A few
+Cool
+To go up
+To go down
+A little bit

@@ -1,0 +1,8 @@
+~ times
+counter for months
+from ~, after ~
+for ~ weeks
+~ times (up to three)
+day
+specific year, counter for year
+~ ago

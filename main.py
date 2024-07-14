@@ -217,27 +217,30 @@ class MultipleChoice:
         self.amnt_correct = 0
         self.amnt_incorrect = 0
         self.m_choice_mainframe = ttk.Frame(mainframe)
+        self.end_subframe = ttk.Frame(self.m_choice_mainframe)
         self.turn_disp = StringVar()
         self.q_disp = StringVar()
         self.correct_status = StringVar()
         self.b1_txt, self.b2_txt, self.b3_txt, self.b4_txt = StringVar(), StringVar(), StringVar(), StringVar()
-        self.b1 = ttk.Button(mainframe, textvariable=self.b1_txt, command=lambda : self.check_button(self.b1_txt.get()))
-        self.b2 = ttk.Button(mainframe, textvariable=self.b2_txt, command=lambda : self.check_button(self.b2_txt.get()))
-        self.b3 = ttk.Button(mainframe, textvariable=self.b3_txt, command=lambda : self.check_button(self.b3_txt.get()))
-        self.b4 = ttk.Button(mainframe, textvariable=self.b4_txt, command=lambda : self.check_button(self.b4_txt.get()))
-        self.turn_label = ttk.Label(mainframe, textvariable=self.turn_disp)
-        self.question_label = ttk.Label(mainframe, textvariable=self.q_disp)
-        self.correct_label = ttk.Label(mainframe, textvariable=self.correct_status)
-        self.uni_quit = ttk.Button(mainframe, text='Quit multiple choice', command=self.destroy_mc)
-        self.widget_lst = [self.b1, self.b2, self.b3, self.b4, self.turn_label, self.question_label, self.correct_label,
-                           self.uni_quit]
-        self.end_widget_lst = []
-        self.cycle = 0
+        self.b1 = ttk.Button(self.m_choice_mainframe, textvariable=self.b1_txt, command=lambda : self.check_button(self.b1_txt.get()))
+        self.b2 = ttk.Button(self.m_choice_mainframe, textvariable=self.b2_txt, command=lambda : self.check_button(self.b2_txt.get()))
+        self.b3 = ttk.Button(self.m_choice_mainframe, textvariable=self.b3_txt, command=lambda : self.check_button(self.b3_txt.get()))
+        self.b4 = ttk.Button(self.m_choice_mainframe, textvariable=self.b4_txt, command=lambda : self.check_button(self.b4_txt.get()))
+        self.turn_label = ttk.Label(self.m_choice_mainframe, textvariable=self.turn_disp)
+        self.question_label = ttk.Label(self.m_choice_mainframe, textvariable=self.q_disp)
+        self.correct_label = ttk.Label(self.m_choice_mainframe, textvariable=self.correct_status)
+        self.uni_quit = ttk.Button(self.m_choice_mainframe, text='Quit multiple choice', command=self.destroy_mc)
+        
+        self.again_label = ttk.Label(self.end_subframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
+        self.end_b1 = ttk.Button(self.end_subframe, text='Yes', command=self.start_from_end)
+        self.end_b2 = ttk.Button(self.end_subframe, text='No', command=self.destroy_mc)
+
+        self.end_widget_lst = [self.again_label, self.end_b1, self.end_b2]
+        self.cycle = True
 
     def start_mc(self):
         self.answer_dict = deepcopy(self.referral_dict)
         self.turn_count += 1
-        self.cycle += 1
 
         self.q, self.a = random.choice(list(self.main_dict.items()))
         del self.main_dict[self.q]
@@ -270,18 +273,22 @@ class MultipleChoice:
         except:
             pass
 
-        if self.cycle == 1:
+        if self.cycle:
             self.display_mc()
+            self.cycle = False
 
     def display_mc(self):
-        self.turn_label.grid(column=1, row=8, sticky=W)
-        self.question_label.grid(column=1, row=5, columnspan=10, sticky=(W, E))
-        self.correct_label.grid(column=2, row=8, columnspan=2, sticky=(W, E))
-        self.b1.grid(column=1, row=6, sticky=W)
-        self.b2.grid(column=2, row=6, sticky=W)
-        self.b3.grid(column=1, row=7, sticky=W)
-        self.b4.grid(column=2, row=7, sticky=W)
-        self.uni_quit.grid(column=6, row=7, sticky=E)
+        self.m_choice_mainframe.grid(column=1, row=5, columnspan=10, sticky=(W, E))
+
+        self.question_label.grid(column=1, row=1, columnspan=10, sticky=W)
+        self.b1.grid(column=1, row=2, sticky=W)
+        self.b2.grid(column=2, row=2, padx=35, sticky=W)
+        self.b3.grid(column=1, row=3, sticky=W)
+        self.b4.grid(column=2, row=3, padx=35, sticky=W)
+        self.turn_label.grid(column=1, row=4, sticky=W)
+        self.correct_label.grid(column=2, row=4, columnspan=2, sticky=(W, E))
+        self.uni_quit.grid(column=5, row=3, padx=100, sticky=E)
+        self.end_subframe.grid(column=1, row=5, columnspan=10,sticky=W)
 
     def check_button(self, inp_a):
         if self.a == inp_a:
@@ -302,33 +309,24 @@ class MultipleChoice:
         if len(self.main_dict) > 0:
             self.start_mc()
         else:
-            self.again_label = ttk.Label(mainframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
-            self.end_b1 = ttk.Button(mainframe, text='Yes', command=self.start_from_end)
-            self.end_b2 = ttk.Button(mainframe, text='No', command=self.destroy_mc)
-
-            self.end_widget_lst.extend([self.again_label, self.end_b1, self.end_b2])
             self.b1.state(['disabled'])
             self.b2.state(['disabled'])
             self.b3.state(['disabled'])
             self.b4.state(['disabled'])
 
-            self.again_label.grid(column=1, row=9, columnspan=4, sticky=W)
-            self.end_b1.grid(column=2, row=10, sticky=W)
-            self.end_b2.grid(column=3, row=10)
+            self.again_label.grid(column=1, row=1, columnspan=4, sticky=W)
+            self.end_b1.grid(column=2, row=2, sticky=W)
+            self.end_b2.grid(column=3, row=2)
 
     def start_from_end(self):
         for i in self.end_widget_lst:
-            i.destroy()
+            i.grid_forget()
         self.main_dict = deepcopy(self.referral_dict)
         self.amnt_correct, self.amnt_incorrect, self.turn_count = 0, 0, 0
         self.start_mc()
 
     def destroy_mc(self):
-        for i in self.end_widget_lst:
-            i.destroy()
-
-        for i in self.widget_lst:
-            i.destroy()
+        self.m_choice_mainframe.destroy()
         pref_done.state(['!disabled'])
         add_dict.state(['!disabled'])
         delete_dict_button.state(['!disabled'])
@@ -371,7 +369,7 @@ class Write:
         self.turn_count += 1
         if len(self.end_widget_lst) > 0:
             for i in self.end_widget_lst:
-                i.destroy()
+                i.grid_forget()
         if not self.main_d:
             self.main_d = deepcopy(self.reference_dict)
         
@@ -450,61 +448,49 @@ class Type:
     def __init__(self, reference_dict):
         self.reference_dict = reference_dict
         self.main_dict = deepcopy(self.reference_dict)
-        self.question_label, self.question_txt = None, StringVar()
-        self.entry, self.entry_txt = None, StringVar()
-        self.correct_status, self.correct_status_txt = None, StringVar(value=' ')
-        self.turn_label, self.turn_txt, self.turns = None, StringVar(), 0
+        self.type_frame = ttk.Frame(mainframe)
+        self.end_subframe = ttk.Frame(self.type_frame)
+        self.question_txt, self.entry_txt, self.correct_status_txt, self.turn_txt = StringVar(), StringVar(), StringVar(value=' '), StringVar()
+        self.question_label = ttk.Label(self.type_frame, textvariable=self.question_txt)
+        self.entry = ttk.Entry(self.type_frame, textvariable=self.entry_txt)
+        self.correct_status = ttk.Label(self.type_frame, textvariable=self.correct_status_txt)
+        self.turn_label = ttk.Label(self.type_frame, textvariable=self.turn_txt)
+        self.quit = ttk.Button(self.type_frame, text='Quit Type.', command=self.destroy_type)
+        self.enter_button = ttk.Button(self.type_frame, text='Enter', command=self.check_ans)
+        self.turns = 0
         self.q, self.a = None, None
         self.amnt_correct, self.amnt_incorrect = 0, 0
-        self.post_game_label = None
-        self.play_again = None
-        self.dont_play_again = None
-        self.quit = None
-        self.enter_button = None
-        self.cycle = 0
+        self.post_game_label_txt = StringVar()
+        self.post_game_label = ttk.Label(self.end_subframe, textvariable=self.post_game_label_txt)
+        self.play_again = ttk.Button(self.end_subframe, text='Yes', command=self.start_from_end)
+        self.dont_play_again = ttk.Button(self.end_subframe, text='No', command=self.destroy_type)
+        self.cycle = True
         root.bind('<Return>', lambda e: self.enter_button.invoke())
 
-        self.widget_lst, self.post_game_lst = [], []
-
-    def create_widgets(self):
-        self.question_label = ttk.Label(mainframe, textvariable=self.question_txt)
-        self.entry = ttk.Entry(mainframe, textvariable=self.entry_txt)
-        self.correct_status = ttk.Label(mainframe, textvariable=self.correct_status_txt)
-        self.turn_label = ttk.Label(mainframe, textvariable=self.turn_txt)
-        self.quit = ttk.Button(mainframe, text='Quit Type.', command=self.destroy_type)
-        self.enter_button = ttk.Button(mainframe, text='Enter', command=self.check_ans)
-
-        self.widget_lst.extend([self.question_label, self.entry, self.correct_status, self.turn_label,
-                                self.quit, self.enter_button])
+        self.post_game_lst = [self.post_game_label, self.play_again, self.dont_play_again]
 
     def display_widgets(self):
-        self.question_label.grid(column=2, row=5, columnspan=2, sticky=W)
-        self.turn_label.grid(column=1, row=5, sticky=W)
-        self.entry.grid(column=2, row=6, sticky=W)
-        self.correct_status.grid(column=3, row=7, columnspan=2, rowspan=2, sticky=(N, W))
-        self.quit.grid(column=5, row=5, sticky=E)
-        self.enter_button.grid(column=3, row=6, sticky=W)
+        self.type_frame.grid(column=1, row=5, columnspan=10, sticky=(W, E))
+        self.turn_label.grid(column=1, row=1, sticky=W)
+        self.question_label.grid(column=2, row=1, columnspan=2, sticky=W)
+        self.entry.grid(column=2, row=2, sticky=W)
+        self.correct_status.grid(column=3, row=3, columnspan=2, rowspan=2, sticky=(N, W))
+        self.quit.grid(column=5, row=1, sticky=E)
+        self.enter_button.grid(column=3, row=2, sticky=W)
+        self.end_subframe.grid(column=1, row=4, columnspan=10, sticky=W)
 
     def get_q_a(self):
-        if len(self.post_game_lst) > 0:
-            for i in self.post_game_lst:
-                i.destroy()
-        self.cycle += 1
         self.turns += 1
         self.turn_txt.set('You are on turn ' + str(self.turns))
-        try:
-            self.enter_button.state(['!disabled'])
-        except AttributeError:
-            pass
 
         self.q, self.a = random.choice(list(self.main_dict.items()))
         del self.main_dict[self.q]
 
-        self.question_txt.set('Your question is ' + self.q)
+        self.question_txt.set('Question: ' + self.q)
 
-        if self.cycle == 1:
-            self.create_widgets()
+        if self.cycle:
             self.display_widgets()
+            self.cycle = False
 
 
 
@@ -528,24 +514,28 @@ class Type:
             mainframe.update()
         
         if len(self.main_dict) == 0:
-            self.post_game_label.grid(column=1, row=7, columnspan=5, rowspan=3, sticky=(N, W))
-            self.play_again = ttk.Button(mainframe, text='Yes', command=self.get_q_a)
-            self.amnt_correct = 0
-            self.amnt_incorrect = 0
-            self.play_again.grid(column=1, row=10, sticky=W)
-            self.dont_play_again = ttk.Button(mainframe, text='No', command=self.destroy_type)
-            self.dont_play_again.grid(column=2, row=10, sticky=W)
-
-            self.post_game_lst = [self.post_game_label, self.play_again, self.dont_play_again]
-            self.widget_lst.extend(self.post_game_lst)
-            self.main_dict = deepcopy(self.reference_dict)
-            self.turns = 0
+            self.post_game_label_txt.set(f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.reference_dict))*100}%!\nWould you like to play again?')
+            self.post_game_label.grid(column=1, row=1, columnspan=5, rowspan=3, sticky=(N, W))
+            self.play_again.grid(column=1, row=4, sticky=W)
+            self.dont_play_again.grid(column=2, row=4, sticky=W)
         else:
+            self.enter_button.state(['!disabled'])
             self.get_q_a()
 
+    def start_from_end(self):
+        for i in self.post_game_lst:
+            i.grid_forget()
+        
+        self.amnt_correct = 0
+        self.amnt_incorrect = 0
+        self.turns = 0
+        self.main_dict = deepcopy(self.reference_dict)
+        self.enter_button.state(['!disabled'])
+        self.get_q_a()
+        
+
     def destroy_type(self):
-        for i in self.widget_lst:
-            i.destroy()
+        self.type_frame.destroy()
         pref_done.state(['!disabled'])
         add_dict.state(['!disabled'])
         delete_dict_button.state(['!disabled'])

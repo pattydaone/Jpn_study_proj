@@ -1,0 +1,4 @@
+Person (polite)
+~years old
+~people
+~th (ordinal suffix)

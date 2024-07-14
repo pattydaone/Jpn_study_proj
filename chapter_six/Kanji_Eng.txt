@@ -1,13 +1,13 @@
-Now; いま、コン
-I (private); わたし・わたくし、シ
-Moon, month; つき、ゲツ・ガツ
-Fire; ひ、カ
-Water; みず、スイ
-Tree; き、モク
-Gold, money, metal; かね、キン
-Earth, soil, ground; つち、ト・ド
-Day of the week; ヨウ
-What; なに、なん
-Week; シュウ
-End; すえ、マツ
-To rest; やす（む）、キュウ
+いま、コン
+わたし・わたくし、シ
+つき、ゲツ・ガツ
+ひ、カ
+みず、スイ
+き、モク
+かね、キン
+つち、ト・ド
+ヨウ
+なに、なん
+シュウ
+すえ、マツ
+やす（む）、キュウ
