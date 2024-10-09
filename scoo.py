@@ -3,6 +3,7 @@ from tkinter import ttk
 from copy import deepcopy
 import random
 import time
+import kanjis
 
 root = Tk()
 root.title('Writing practice for Japanese')
@@ -26,7 +27,7 @@ class Preferences:
     def chapter_pref_combo(self):
         self.chapter_label = ttk.Label(mainframe, text='Select Chapter')
         self.chapter = ttk.Combobox(mainframe, textvariable=self.chapter_txt_var)
-        file = open('Available_Chapters.txt', 'r')
+        file = open('Available_Chapters.txt', 'r', encoding='utf8')
         filestr = file.read()
         file_lst = filestr.split('\n')
         self.chapter['values'] = file_lst
@@ -53,7 +54,7 @@ class Preferences:
         self.game_label = ttk.Label(mainframe, text='Choose multiple choice or write.')
         self.game = ttk.Combobox(mainframe, textvariable=self.game_txt)
         self.game.state(['readonly'])
-        self.game['values'] = ['Multiple Choice', 'Write', 'Type']
+        self.game['values'] = ['Multiple Choice', 'Write', 'Type', 'Map']
         self.widget_lst.extend([self.game_label, self.game])
 
     # create button for user to click when they are done with choosing their preferences.
@@ -70,7 +71,7 @@ class Preferences:
 
     # Set values of vocab preference combobox when a chapter is selected
     def set_vocab_values(self, event):
-        file = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r')
+        file = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
         file_str = file.read()
         file_lst = file_str.split('\n')
         self.vocab['values'] = file_lst
@@ -92,7 +93,7 @@ class Preferences:
 
     def get_all_from_chap(self, chapter):
         full_dict = {}
-        file = open(f'chapter_{chapter}/vocab_types.txt', 'r')
+        file = open(f'Jpn_study_proj-main/chapter_{chapter}/vocab_types.txt', 'r', encoding='utf8')
         file_str = file.read()
         file_lst = file_str.split('\n')
         for i in file_lst[1:]:
@@ -103,7 +104,7 @@ class Preferences:
 
     def get_all_chaps(self): # useless for the time being
         full_dict = {}
-        file = open('Available_Chapters.txt', 'r')
+        file = open('Jpn_study_proj-main/Available_Chapters.txt', 'r', encoding='utf8')
         file_str = file.read()
         file_lst = file_str.split('\n')
 
@@ -119,18 +120,18 @@ class Preferences:
 
     def create_dict(self, chapter, vocab_type):
         d = {}
-        eng_f = open(f'chapter_{chapter}/{vocab_type}_Eng.txt', 'r')
+        eng_f = open(f'chapter_{chapter}/{vocab_type}_Eng.txt', 'r', encoding='utf8')
         eng_f_str = eng_f.read()
         eng_f_lst = eng_f_str.split('\n')
         eng_f.close()
 
         if self.kanji_yn.get():
             try:
-                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn_Kanji.txt', 'r')
+                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn_Kanji.txt', 'r', encoding='utf8')
             except:
-                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r')
+                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
         else:
-            jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r')
+            jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
         jpn_f_str = jpn_f.read()
         jpn_f_lst = jpn_f_str.split('\n')
         jpn_f.close()
@@ -144,7 +145,7 @@ class Preferences:
         s = ''
         if self.vocab_txt_var.get() == 'All':
             self.combed_dict = self.get_all_from_chap(chapter=self.chapter_txt_var.get())
-            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r')
+            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
             f_str = f.read()
             f_lst = f_str.split('\n')
             self.added_dicts.extend(f_lst[1:])
@@ -165,7 +166,7 @@ class Preferences:
             foo = self.get_all_from_chap(chapter=self.chapter_txt_var.get())
             for i in foo:
                 del self.combed_dict[i]
-            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r')
+            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
             f_str = f.read()
             f_lst = f_str.split('\n')
             for i in f_lst[1:]:
@@ -199,6 +200,9 @@ class Preferences:
         elif self.game_txt.get() == 'Type':
             t = Type(reference_dict=self.combed_dict)
             t.get_q_a()
+        elif self.game_txt.get() == 'Map':
+            k = MapAnimations(reference_dict=self.combed_dict)
+            k.create()
 
     def run(self):
         self.chapter_pref_combo()
@@ -231,7 +235,8 @@ class MultipleChoice:
         self.correct_label = ttk.Label(self.m_choice_mainframe, textvariable=self.correct_status)
         self.uni_quit = ttk.Button(self.m_choice_mainframe, text='Quit multiple choice', command=self.destroy_mc)
         
-        self.again_label = ttk.Label(self.end_subframe, text=f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
+        self.again_label_txt = StringVar()
+        self.again_label = ttk.Label(self.end_subframe, textvariable=self.again_label_txt)
         self.end_b1 = ttk.Button(self.end_subframe, text='Yes', command=self.start_from_end)
         self.end_b2 = ttk.Button(self.end_subframe, text='No', command=self.destroy_mc)
 
@@ -314,6 +319,7 @@ class MultipleChoice:
             self.b3.state(['disabled'])
             self.b4.state(['disabled'])
 
+            self.again_label_txt.set(f'You are done!\nYou got {self.amnt_correct} question(s) correct and {self.amnt_incorrect} questions wrong with an accuracy of {(self.amnt_correct/len(self.referral_dict))*100}%!\nWould you like to play again?')
             self.again_label.grid(column=1, row=1, columnspan=4, sticky=W)
             self.end_b1.grid(column=2, row=2, sticky=W)
             self.end_b2.grid(column=3, row=2)
@@ -334,32 +340,33 @@ class MultipleChoice:
 
 class Write:
     def __init__(self, reference_dict):
+        self.write_frame = ttk.Frame(mainframe, cursor="pencil")
         self.reference_dict = reference_dict
-        self.canvas_frame = ttk.Frame(mainframe)
+        self.animation_frame = ttk.Frame(self.write_frame)
+        self.animation_frame['borderwidth'] = 5
+        self.animation_frame['relief'] = 'sunken'
+        self.animation_canvas = Canvas(self.animation_frame, width=500, height=400)
+        self.canvas_frame = ttk.Frame(self.write_frame)
         self.canvas_frame['borderwidth'] = 5
         self.canvas_frame['relief'] = 'sunken'
-        self.canvas = Canvas(self.canvas_frame, width=1000, height=400)
+        self.canvas = Canvas(self.canvas_frame, width=500, height=400)
         self.q_txt, self.a_txt = StringVar(), StringVar()
-        self.q_label = ttk.Label(mainframe, textvariable=self.q_txt)
-        self.a_label = ttk.Label(mainframe, textvariable=self.a_txt)
-        self.fin_label = ttk.Label(mainframe, text="You've reached the end!\nWould you like to go again?")
-        self.clear_button = ttk.Button(mainframe, text='Clear Canvas', command=self.clear_canv)
-        self.undo_button = ttk.Button(mainframe, text='Undo', command=self.undo)
-        self.enter_button = ttk.Button(mainframe, text='Enter', command=self.post_enter)
-        self.quit_button = ttk.Button(mainframe, text='Quit write', command=self.destroy_write)
-        self.show_ans_button = ttk.Button(mainframe, text='Show answer', command=self.show_ans)
+        self.q_label = ttk.Label(self.write_frame, textvariable=self.q_txt)
+        self.a_label = ttk.Label(self.write_frame, textvariable=self.a_txt)
+        self.fin_label = ttk.Label(self.write_frame, text="You've reached the end!\nWould you like to go again?")
+        self.clear_button = ttk.Button(self.write_frame, text='Clear Canvas', command=self.clear_canv)
+        self.undo_button = ttk.Button(self.write_frame, text='Undo', command=self.undo)
+        self.enter_button = ttk.Button(self.write_frame, text='Enter', command=self.post_enter)
+        self.quit_button = ttk.Button(self.write_frame, text='Quit write', command=self.destroy_write)
+        self.show_ans_button = ttk.Button(self.write_frame, text='Show answer', command=self.draw)
         self.turn_count = 0
         self.main_d = {}
-        self.buttonY = ttk.Button(mainframe, text='Play Again', command=self.choose_q)
-        self.buttonN = ttk.Button(mainframe, text='Quit', command=self.destroy_write)
-        self.ans_label_txt = StringVar()
-        self.ans_label = ttk.Label(mainframe, textvariable=self.ans_label_txt)
-        self.widget_lst = [self.q_label, self.a_label, self.canvas, self.clear_button, self.enter_button,
-                           self.quit_button, self.canvas_frame, self.show_ans_button, self.ans_label, self.undo_button]
-        self.end_widget_lst = []
+        self.buttonY = ttk.Button(self.write_frame, text='Play Again', command=self.choose_q)
+        self.buttonN = ttk.Button(self.write_frame, text='Quit', command=self.destroy_write)
         self.undo_lst = []
         self.tag_num = 0
         self.tag = 'tag' + str(self.tag_num)
+        self.end_widget_lst = []
 
         self.canvas.bind("<Button-1>", self.savePosn)
         self.canvas.bind("<B1-Motion>", self.addLine)
@@ -382,16 +389,17 @@ class Write:
             self.display_canv()
 
     def display_canv(self):
-        self.q_label.grid(column=1, row=5, columnspan=2, sticky=W)
-        self.a_label.grid(column=2, row=5, columnspan=2, rowspan=2, sticky=W)
-        self.canvas_frame.grid(column=1, row=8, columnspan=10, rowspan=10, sticky=W)
-        self.canvas.grid(column=1, row=8, columnspan=10, rowspan=10, sticky=(N, W))
-        self.clear_button.grid(column=1, row=7, sticky=W)
-        self.undo_button.grid(column=1, row=7, sticky=E)
-        self.enter_button.grid(column=2, row=7, sticky=W)
-        self.quit_button.grid(column=5, row=7, sticky=E)
-        self.show_ans_button.grid(column=3, row=7, sticky=W)
-        self.ans_label.grid(column=4, row=7, sticky=W)
+        self.write_frame.grid(column=1, row=5, columnspan=20, rowspan=11)
+        self.q_label.grid(column=1, row=1, columnspan=2, sticky=W)
+        self.canvas_frame.grid(column=1, row=3, columnspan=10, rowspan=10, sticky=W)
+        self.canvas.grid(column=1, row=1, sticky=(N, W))
+        self.animation_frame.grid(column=11, row=3, columnspan=10, rowspan=10, sticky=W)
+        self.animation_canvas.grid(column=1, row=1, sticky=(N, W))
+        self.clear_button.grid(column=1, row=2, sticky=W)
+        self.undo_button.grid(column=2, row=2, sticky=E)
+        self.enter_button.grid(column=3, row=2, sticky=W)
+        self.quit_button.grid(column=5, row=2, sticky=E)
+        self.show_ans_button.grid(column=4, row=2, sticky=W)
 
     def clear_canv(self):
         self.canvas.delete('all')
@@ -401,7 +409,7 @@ class Write:
         self.lastx, self.lasty = event.x, event.y
 
     def addLine(self, event):
-        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag)
+        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True, width=1.5)
         self.savePosn(event)
 
     def undo(self):
@@ -415,30 +423,37 @@ class Write:
         self.tag_num += 1
         self.tag = 'tag' + str(self.tag_num)
 
-    def show_ans(self):
-        self.ans_label_txt.set(self.a)
-        mainframe.update()
+    def draw(self):
+       self.animation_canvas.delete('all')
+       for i in kanjis.encoded_kanjis[self.a]:
+            self.animation_frame.update()
+            time.sleep(0.25)
+            for j in i:
+                self.animation_canvas.create_line((j[0], j[1], j[2], j[3]))
+                self.animation_frame.update()
+                # time.sleep(0.0001)
 
     def post_enter(self):
-        self.a_txt.set(f'The correct answer is {self.a}.\nHope you got it right!')
-        self.ans_label_txt.set(' ')
-        mainframe.update()
-        time.sleep(3)
-        self.a_txt.set(' ')
+        try:
+            self.draw()
+            mainframe.update()
+        except KeyError:
+            pass
+        time.sleep(2)
+        # self.a_txt.set(' ')
         mainframe.update()
         self.clear_canv()
+        self.animation_canvas.delete('all')
         if not self.main_d:
             self.fin_label.grid(column=1, row=9, columnspan=3, sticky=W)
             self.buttonY.grid(column=2, row=9, sticky=W)
             self.buttonN.grid(column=3, row=9, sticky=W)
-            self.end_widget_lst = [self.fin_label, self.buttonN, self.buttonY]
-            self.widget_lst.extend(self.end_widget_lst)
+            self.end_widget_lst = [self.fin_label, self.buttonY, self.buttonN]
         else:
             self.choose_q()
-    
+
     def destroy_write(self):
-        for i in self.widget_lst:
-            i.destroy()
+        self.write_frame.destroy()
         pref_done.state(['!disabled'])
         add_dict.state(['!disabled'])
         delete_dict_button.state(['!disabled'])
@@ -539,6 +554,123 @@ class Type:
         pref_done.state(['!disabled'])
         add_dict.state(['!disabled'])
         delete_dict_button.state(['!disabled'])
+
+
+class MapAnimations:
+    def __init__(self, reference_dict):
+        self.reference_dict = reference_dict
+        self.current_dict_index = 0
+        self.canvas_frame = ttk.Frame(mainframe)
+        self.canvas_frame['borderwidth'] = 5
+        self.canvas_frame['relief'] = 'sunken'
+        self.canvas = Canvas(self.canvas_frame, width=500, height=400)
+        self.q_txt = StringVar()
+        self.q_label = ttk.Label(self.canvas_frame, textvariable=self.q_txt)
+        self.redo_button = ttk.Button(self.canvas_frame, text="Redo.", command=self.redo)
+        self.undo_button = ttk.Button(self.canvas_frame, text='Undo', command=self.undo)
+        self.enter_button = ttk.Button(self.canvas_frame, text='Enter', command=self.enter)
+        self.sure_label = ttk.Label(self.canvas_frame, text='Are you sure?')
+        self.sure_button = ttk.Button(self.canvas_frame, text='yes', command=self.yes)
+        self.not_sure_button = ttk.Button(self.canvas_frame, text='no', command=self.no)
+        self.quit_button = ttk.Button(self.canvas_frame, text='Quit', command=self.quit)
+        self.skip_button = ttk.Button(self.canvas_frame, text="Skip", command=self.skip)
+        self.undo_lst = []
+        self.tag_num = 0
+        self.tag = 'tag' + str(self.tag_num)
+        self.canvas.bind('<Button-1>', self.savePosn)
+        self.canvas.bind("<B1-Motion>", self.addLine)
+        self.canvas.bind('<ButtonRelease-1>', self.on_release)
+        self.encoded_lst = []
+        self.radical_lst = []
+
+    def create(self):
+        self.canvas_frame.grid(column=1, row=8, columnspan=10, rowspan=10, sticky=W)
+        self.q_label.grid(column=1, row=1, sticky=W)
+        self.redo_button.grid(column=2, row=1, sticky=W)
+        self.undo_button.grid(column=3, row=1, sticky=W)
+        self.skip_button.grid(column=4, row=1, sticky=W)
+        self.enter_button.grid(column=5, row=1, sticky=E)
+        self.canvas.grid(column=1, row=2, columnspan=10, rowspan=10, sticky=(N, W))
+        self.quit_button.grid(column=6, row=1, sticky=E)
+        self.start()
+
+    def start(self):
+        self.q_txt.set(list(self.reference_dict.values())[self.current_dict_index])
+        mainframe.update()
+        self.current_dict_index += 1
+
+    def savePosn(self, event):
+        self.lastx, self.lasty = event.x, event.y
+
+    def addLine(self, event):
+        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True)
+        self.radical_lst.append([self.lastx, self.lasty, event.x, event.y])
+        self.savePosn(event)
+
+    def on_release(self, event):
+        self.undo_lst.append(self.tag)
+        self.tag_num += 1
+        self.tag = 'tag' + str(self.tag_num)
+        self.encoded_lst.append(self.radical_lst)
+        self.radical_lst = []
+
+    def redo(self):
+        self.canvas.delete('all')
+        self.undo_lst = []
+        self.encoded_lst = []
+    
+    def undo(self):
+        to_undo = self.undo_lst[-1]
+        for i in self.canvas.find_withtag(to_undo):
+            self.canvas.delete(i)
+        self.undo_lst.remove(to_undo)
+        self.encoded_lst.remove(self.encoded_lst[-1])
+
+    def draw(self):
+        for i in self.encoded_lst:
+            mainframe.update()
+            time.sleep(0.25)
+            for j in i:
+                self.canvas.create_line((j[0], j[1], j[2], j[3]))
+                mainframe.update()
+                time.sleep(0.001)
+
+    def enter(self):
+        self.canvas.delete('all')
+        self.draw()
+        self.sure_label.grid(column=1, row=13, sticky=W)
+        self.sure_button.grid(column=1, row=14, sticky=W)
+        self.not_sure_button.grid(column=2, row=14, sticky=E)
+
+    def yes(self):
+        kanjis.encoded_kanjis[self.q_txt.get()] = self.encoded_lst
+        file = open('kanji_dump.txt', 'w', encoding='utf8')
+        file.write("encoded_kanjis = " + str(kanjis.encoded_kanjis))
+        file.close()
+        self.redo()
+        self.sure_label.grid_forget()
+        self.sure_button.grid_forget()
+        self.not_sure_button.grid_forget()
+        self.start()
+
+    def no(self):
+        self.redo()
+        self.current_dict_index -= 1
+        self.sure_label.grid_forget()
+        self.sure_button.grid_forget()
+        self.not_sure_button.grid_forget()
+        self.start()
+
+    def quit(self):
+        self.canvas_frame.destroy()
+        pref_done.state(['!disabled'])
+        add_dict.state(['!disabled'])
+        delete_dict_button.state(['!disabled'])
+
+    def skip(self):
+        self.encoded_lst = []
+        self.canvas.delete('all')
+        self.start()
 
 
 Preferences().run()
