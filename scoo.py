@@ -11,38 +11,65 @@ mainframe = ttk.Frame(root, padding='3 3 12 12')
 mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
+style = ttk.Style()
 
 class Preferences:
     def __init__(self):
         self.chapter_txt_var = StringVar()
-        self.vocab_txt_var = StringVar()
+        self.book_txt_var = StringVar()
         self.kanji_yn = BooleanVar(value=True)
         self.game_txt = StringVar()
         self.combed_dict = {}
         self.widget_lst = []
-        self.added_dicts = []
-        self.added_dicts_txt = StringVar()
+
+    # Create book preference combo box
+    def book_pref_combo(self):
+        self.book_label = ttk.Label(mainframe, text='Select Book')
+        self.book_combo = ttk.Combobox(mainframe, textvariable=self.book_txt_var)
+        self.book_combo.state(['readonly'])
+
+        # Set values of combo box to books listed in Available_books.txt
+        file = open('Available_books.txt', 'r', encoding='utf8')
+        filestr = file.read()
+        file_lst = filestr.split("\n")
+        self.book_combo['values'] = file_lst
+        file.close()
+
+        self.book_combo.bind('<<ComboboxSelected>>', self.set_chapter_values)
+        self.widget_lst.extend([self.book_label, self.book_combo])
+
+    # Set chapter values based on selected book
+    def set_chapter_values(self, event):
+        file = open(f'book_{self.book_txt_var.get().lower()}/Available_Chapters.txt', 'r', encoding='utf8')
+        filestr = file.read()
+        file_lst = filestr.split('\n')
+        self.chapter['values'] = file_lst
+        file.close()
 
     # Create chapter preference combo box
     def chapter_pref_combo(self):
         self.chapter_label = ttk.Label(mainframe, text='Select Chapter')
         self.chapter = ttk.Combobox(mainframe, textvariable=self.chapter_txt_var)
-        file = open('Available_Chapters.txt', 'r', encoding='utf8')
-        filestr = file.read()
-        file_lst = filestr.split('\n')
-        self.chapter['values'] = file_lst
-        file.close()
+        self.chapter['values'] = ['Please select a book.']
         self.chapter.state(['readonly'])
+
         self.chapter.bind('<<ComboboxSelected>>', self.set_vocab_values)
         self.widget_lst.extend([self.chapter_label, self.chapter])
 
-    # Create vocabulary type preferences combo box; responds to create_chapter_pref
-    def vocab_pref_combo(self):
-        self.vocab_label = ttk.Label(mainframe, text='Select Vocabulary Word Type')
-        self.vocab = ttk.Combobox(mainframe, textvariable=self.vocab_txt_var)
-        self.vocab.state(['readonly'])
-        self.vocab['values'] = ['Please choose a chapter first.']
-        self.widget_lst.extend([self.vocab_label, self.vocab])
+    # Set values of vocab preference combobox when a chapter is selected
+    def set_vocab_values(self, event):
+        file = open(f'book_{self.book_txt_var.get().lower()}/chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
+        file_str = file.read()
+        self.vocab_file_lst = file_str.split('\n')
+        self.listvar.set(self.vocab_file_lst)
+        file.close()
+
+    # Create vocabulary type preferences list box; responds to create_chapter_pref
+    def vocab_pref_lbox(self):
+        self.vocab_label = ttk.Label(mainframe, text='Select Vocabulary Word Type', )
+        self.listvar = StringVar(value=['Select a Chapter'])
+        self.vocab_lbox = Listbox(mainframe, listvariable=self.listvar, height=10, selectmode='multiple')
+        self.widget_lst.extend([self.vocab_label, self.vocab_lbox])
 
     # create a checkbox to determine whether the user wants kanji in their study set, or just hiragana
     def create_kanji_checkbox(self):
@@ -51,7 +78,7 @@ class Preferences:
 
     # create combobox so user can input whether they want to play multiple choice or write
     def game_pref_combo(self):
-        self.game_label = ttk.Label(mainframe, text='Choose multiple choice or write.')
+        self.game_label = ttk.Label(mainframe, text='Select game.')
         self.game = ttk.Combobox(mainframe, textvariable=self.game_txt)
         self.game.state(['readonly'])
         self.game['values'] = ['Multiple Choice', 'Write', 'Type', 'Map']
@@ -59,41 +86,28 @@ class Preferences:
 
     # create button for user to click when they are done with choosing their preferences.
     def pref_done_button(self):
-        global pref_done, add_dict, delete_dict_button
+        global pref_done
         pref_done = ttk.Button(mainframe, text='Finished!', command=self.start_main)
-        add_dict = ttk.Button(mainframe, text='Add!', command=self.combine_dicts)
-        delete_dict_button = ttk.Button(mainframe, text='Delete!', command=self.delete_dict)
-        self.display_added_dicts = ttk.Label(mainframe, textvariable=self.added_dicts_txt)
-        self.delete_dict_button = delete_dict_button
-        self.add_dict = add_dict
         self.pref_done = pref_done
-        self.widget_lst.extend([self.pref_done, self.add_dict, self.delete_dict])
+        self.widget_lst.append(self.pref_done)
 
-    # Set values of vocab preference combobox when a chapter is selected
-    def set_vocab_values(self, event):
-        file = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
-        file_str = file.read()
-        file_lst = file_str.split('\n')
-        self.vocab['values'] = file_lst
-        file.close()
-
+    # All widgets will be grid
     def display(self):
-        self.chapter_label.grid(column=1, row=1, sticky=W)
-        self.chapter.grid(column=1, row=2, sticky=W)
+        self.book_label.grid(column=1, row=1, sticky=W)
+        self.book_combo.grid(column=1, row=2, sticky=W)
+        self.chapter_label.grid(column=1, row=3, sticky=W)
+        self.chapter.grid(column=1, row=4, sticky=W)
+        self.game_label.grid(column=1, row=5, sticky=W)
+        self.game.grid(column=1, row=6, sticky=W)
         self.vocab_label.grid(column=2, row=1, sticky=W)
-        self.vocab.grid(column=2, row=2, sticky=W)
-        self.kanji.grid(column=1, row=3, sticky=W)
-        self.game_label.grid(column=3, row=1, sticky=W)
-        self.game.grid(column=3, row=2, sticky=W)
-        self.pref_done.grid(column=4, row=3, sticky=W)
-        self.add_dict.grid(column=2, row=3, sticky=W)
-        self.delete_dict_button.grid(column=3, row=3, sticky=W)
-        self.display_added_dicts.grid(column=2, row=4, columnspan=10, sticky=W)
+        self.vocab_lbox.grid(column=2, row=2, sticky=W, rowspan=8)
+        self.kanji.grid(column=1, row=7, sticky=W)
+        self.pref_done.grid(column=1, row=8, sticky=W)
 
-
+    # If user selects "All" during vocabulary selection, this function will be called
     def get_all_from_chap(self, chapter):
         full_dict = {}
-        file = open(f'Jpn_study_proj-main/chapter_{chapter}/vocab_types.txt', 'r', encoding='utf8')
+        file = open(f'book_{self.book_txt_var.get().lower()}/Jpn_study_proj-main/chapter_{chapter}/vocab_types.txt', 'r', encoding='utf8')
         file_str = file.read()
         file_lst = file_str.split('\n')
         for i in file_lst[1:]:
@@ -102,36 +116,21 @@ class Preferences:
 
         return full_dict
 
-    def get_all_chaps(self): # useless for the time being
-        full_dict = {}
-        file = open('Jpn_study_proj-main/Available_Chapters.txt', 'r', encoding='utf8')
-        file_str = file.read()
-        file_lst = file_str.split('\n')
-
-        for i in file_lst[1:]:
-            if self.vocab_txt_var.get() == 'All':
-                d = self.get_all_from_chap(chapter=i)
-                full_dict.update(d)
-            else:
-                d = self.create_dict(chapter=i, vocab_type=self.vocab_txt_var.get())
-                full_dict.update(d)
-        
-        return full_dict
-
+    # Given a chapter and vocabulary type, this function combines the associated txt files into an ordered dictionary
     def create_dict(self, chapter, vocab_type):
         d = {}
-        eng_f = open(f'chapter_{chapter}/{vocab_type}_Eng.txt', 'r', encoding='utf8')
+        eng_f = open(f'book_{self.book_txt_var.get().lower()}/chapter_{chapter}/{vocab_type}_Eng.txt', 'r', encoding='utf8')
         eng_f_str = eng_f.read()
         eng_f_lst = eng_f_str.split('\n')
         eng_f.close()
 
         if self.kanji_yn.get():
             try:
-                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn_Kanji.txt', 'r', encoding='utf8')
+                jpn_f = open(f'book_{self.book_txt_var.get().lower()}/chapter_{chapter}/{vocab_type}_Jpn_Kanji.txt', 'r', encoding='utf8')
             except:
-                jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
+                jpn_f = open(f'book_{self.book_txt_var.get().lower()}/chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
         else:
-            jpn_f = open(f'chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
+            jpn_f = open(f'book_{self.book_txt_var.get().lower()}/chapter_{chapter}/{vocab_type}_Jpn.txt', 'r', encoding='utf8')
         jpn_f_str = jpn_f.read()
         jpn_f_lst = jpn_f_str.split('\n')
         jpn_f.close()
@@ -141,53 +140,24 @@ class Preferences:
         
         return d
     
+    # Takes all selections from Listbox and creates their associated dictionaries, then combines them all into one dictionary
     def combine_dicts(self):
+        selected_indices = self.vocab_lbox.curselection()
+        selected_vocab_types = []
+        for i in selected_indices:
+            selected_vocab_types.append(self.vocab_file_lst[i])
         s = ''
-        if self.vocab_txt_var.get() == 'All':
+        if selected_vocab_types[0] == 'All':
             self.combed_dict = self.get_all_from_chap(chapter=self.chapter_txt_var.get())
-            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
-            f_str = f.read()
-            f_lst = f_str.split('\n')
-            self.added_dicts.extend(f_lst[1:])
         else:
-            foo = self.create_dict(chapter=self.chapter_txt_var.get(), vocab_type=self.vocab_txt_var.get())
-            self.combed_dict.update(foo)
-            self.added_dicts.append(self.vocab_txt_var.get())
-
-        for i in range(0, len(self.added_dicts) - 1):
-            s += self.added_dicts[i] + ', '
-        s += self.added_dicts[-1]
-        self.added_dicts_txt.set(s)
-        mainframe.update()
-
-    def delete_dict(self):
-        s = ''
-        if self.vocab_txt_var.get() == 'All':
-            foo = self.get_all_from_chap(chapter=self.chapter_txt_var.get())
-            for i in foo:
-                del self.combed_dict[i]
-            f = open(f'chapter_{self.chapter_txt_var.get()}/vocab_types.txt', 'r', encoding='utf8')
-            f_str = f.read()
-            f_lst = f_str.split('\n')
-            for i in f_lst[1:]:
-                self.added_dicts.remove(i)
-        else:
-            foo = self.create_dict(chapter=self.chapter_txt_var.get(), vocab_type=self.vocab_txt_var.get())
-            for i in foo:
-                del self.combed_dict[i]
-            self.added_dicts.remove(self.vocab_txt_var.get())
-
-        for i in range(0, len(self.added_dicts) - 1):
-            s += self.added_dicts[i] + ', '
-        s += self.added_dicts[-1]
-        self.added_dicts_txt.set(s)
-        mainframe.update()
+            for i in selected_vocab_types:
+                foo = self.create_dict(chapter=self.chapter_txt_var.get(), vocab_type=i)
+                self.combed_dict.update(foo)
 
     # function will open up the chosen files and combine them into a dictionary, then start the chosen study game
     def start_main(self):
         self.pref_done.state(['disabled'])
-        self.add_dict.state(['disabled'])
-        self.delete_dict_button.state(['disabled'])
+        self.combine_dicts()
 
         if self.game_txt.get() == 'Multiple Choice':
             mc = MultipleChoice(referral_dict=self.combed_dict)
@@ -205,8 +175,9 @@ class Preferences:
             k.create()
 
     def run(self):
+        self.book_pref_combo()
         self.chapter_pref_combo()
-        self.vocab_pref_combo()
+        self.vocab_pref_lbox()
         self.create_kanji_checkbox()
         self.game_pref_combo()
         self.pref_done_button()
@@ -334,8 +305,6 @@ class MultipleChoice:
     def destroy_mc(self):
         self.m_choice_mainframe.destroy()
         pref_done.state(['!disabled'])
-        add_dict.state(['!disabled'])
-        delete_dict_button.state(['!disabled'])
 
 
 class Write:
@@ -455,8 +424,6 @@ class Write:
     def destroy_write(self):
         self.write_frame.destroy()
         pref_done.state(['!disabled'])
-        add_dict.state(['!disabled'])
-        delete_dict_button.state(['!disabled'])
 
 
 class Type:
@@ -552,8 +519,6 @@ class Type:
     def destroy_type(self):
         self.type_frame.destroy()
         pref_done.state(['!disabled'])
-        add_dict.state(['!disabled'])
-        delete_dict_button.state(['!disabled'])
 
 
 class MapAnimations:
@@ -664,14 +629,33 @@ class MapAnimations:
     def quit(self):
         self.canvas_frame.destroy()
         pref_done.state(['!disabled'])
-        add_dict.state(['!disabled'])
-        delete_dict_button.state(['!disabled'])
 
     def skip(self):
         self.encoded_lst = []
         self.canvas.delete('all')
         self.start()
 
+root.option_add('*tearOff', 0)
+
+# Start menu code
+menubar = Menu(root)
+root.config(menu=menubar)
+
+menu_look = Menu(menubar)
+menubar.add_cascade(menu=menu_look, label='Preferences')
+dark_mode = IntVar()
+menu_look.add_checkbutton(label='Dark Mode', variable=dark_mode, onvalue=1, offvalue=0)
+
+def to_dark(arg_one, arg_two, arg_three):
+    if dark_mode.get():
+        print('hi')
+        style.configure(style='TFrame', background='black')
+    elif not dark_mode.get():
+        print('bye')
+        style.configure(style='TFrame', background='white')
+
+dark_mode.trace_add('write', to_dark)
+# End menu code
 
 Preferences().run()
 
