@@ -1,0 +1,3 @@
+Limit
+Place in which movement occurs
+Out of ~, from ~

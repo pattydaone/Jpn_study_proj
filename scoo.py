@@ -429,7 +429,7 @@ class Write:
             self.animation_frame.update()
             time.sleep(0.25)
             for j in i:
-                self.animation_canvas.create_line((j[0], j[1], j[2], j[3]))
+                self.animation_canvas.create_line((j[0], j[1], j[2], j[3]), smooth=True, width=1.5)
                 self.animation_frame.update()
                 # time.sleep(0.0001)
 
@@ -603,7 +603,7 @@ class MapAnimations:
         self.lastx, self.lasty = event.x, event.y
 
     def addLine(self, event):
-        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True)
+        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True, width=1.5)
         self.radical_lst.append([self.lastx, self.lasty, event.x, event.y])
         self.savePosn(event)
 
@@ -631,7 +631,7 @@ class MapAnimations:
             mainframe.update()
             time.sleep(0.25)
             for j in i:
-                self.canvas.create_line((j[0], j[1], j[2], j[3]))
+                self.canvas.create_line((j[0], j[1], j[2], j[3]), smooth=True, width=1.5)
                 mainframe.update()
                 time.sleep(0.001)
 
@@ -671,7 +671,6 @@ class MapAnimations:
         self.encoded_lst = []
         self.canvas.delete('all')
         self.start()
-
 
 Preferences().run()
 
