@@ -1,9 +1,24 @@
+"""
+Things to add:
+    - Add ability to change drawing color
+    - Add eraser
+    - Add ability to change size of drawing thingy
+    - Add integrated way to create new vocabulary sets (while im at it, change "books" to "vocab sets" or something similar)
+    - Add mac support to the menu; must have program detect which os is being used
+    - Reorganize write game's interface
+    - Add a way to skip animation after pressing "enter" in write game; automatically skip if "show answer" has been selected
+    - Disable buttons when checking answers
+    - Error handling
+"""
+
+
 from tkinter import *
 from tkinter import ttk
 from copy import deepcopy
 import random
 import time
 import kanjis
+from presets import presets
 
 root = Tk()
 root.title('Writing practice for Japanese')
@@ -12,6 +27,15 @@ mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 style = ttk.Style()
+root.tk.call('lappend', 'auto_path', 'awthemes-10.4.0')
+root.tk.call('package', 'require', 'awdark')
+
+# set default theme to dark
+theme = open('default_theme.txt', 'r', encoding='utf8')
+themestr = theme.read()
+if themestr == 'dark':
+    style.theme_use('awdark')
+theme.close()
 
 class Preferences:
     def __init__(self):
@@ -20,11 +44,10 @@ class Preferences:
         self.kanji_yn = BooleanVar(value=True)
         self.game_txt = StringVar()
         self.combed_dict = {}
-        self.widget_lst = []
 
     # Create book preference combo box
     def book_pref_combo(self):
-        self.book_label = ttk.Label(mainframe, text='Select Book')
+        self.book_label = ttk.Label(mainframe, text='Vocabulary set')
         self.book_combo = ttk.Combobox(mainframe, textvariable=self.book_txt_var)
         self.book_combo.state(['readonly'])
 
@@ -36,7 +59,6 @@ class Preferences:
         file.close()
 
         self.book_combo.bind('<<ComboboxSelected>>', self.set_chapter_values)
-        self.widget_lst.extend([self.book_label, self.book_combo])
 
     # Set chapter values based on selected book
     def set_chapter_values(self, event):
@@ -48,13 +70,12 @@ class Preferences:
 
     # Create chapter preference combo box
     def chapter_pref_combo(self):
-        self.chapter_label = ttk.Label(mainframe, text='Select Chapter')
+        self.chapter_label = ttk.Label(mainframe, text='Chapter')
         self.chapter = ttk.Combobox(mainframe, textvariable=self.chapter_txt_var)
-        self.chapter['values'] = ['Please select a book.']
+        self.chapter['values'] = ['Select a vocabulary set']
         self.chapter.state(['readonly'])
 
         self.chapter.bind('<<ComboboxSelected>>', self.set_vocab_values)
-        self.widget_lst.extend([self.chapter_label, self.chapter])
 
     # Set values of vocab preference combobox when a chapter is selected
     def set_vocab_values(self, event):
@@ -69,12 +90,10 @@ class Preferences:
         self.vocab_label = ttk.Label(mainframe, text='Select Vocabulary Word Type', )
         self.listvar = StringVar(value=['Select a Chapter'])
         self.vocab_lbox = Listbox(mainframe, listvariable=self.listvar, height=10, selectmode='multiple')
-        self.widget_lst.extend([self.vocab_label, self.vocab_lbox])
 
     # create a checkbox to determine whether the user wants kanji in their study set, or just hiragana
     def create_kanji_checkbox(self):
         self.kanji = ttk.Checkbutton(mainframe, text='Study with Kanji?', variable=self.kanji_yn, onvalue=True, offvalue=False)
-        self.widget_lst.append(self.kanji)
 
     # create combobox so user can input whether they want to play multiple choice or write
     def game_pref_combo(self):
@@ -82,14 +101,12 @@ class Preferences:
         self.game = ttk.Combobox(mainframe, textvariable=self.game_txt)
         self.game.state(['readonly'])
         self.game['values'] = ['Multiple Choice', 'Write', 'Type', 'Map']
-        self.widget_lst.extend([self.game_label, self.game])
 
     # create button for user to click when they are done with choosing their preferences.
     def pref_done_button(self):
         global pref_done
         pref_done = ttk.Button(mainframe, text='Finished!', command=self.start_main)
         self.pref_done = pref_done
-        self.widget_lst.append(self.pref_done)
 
     # All widgets will be grid
     def display(self):
@@ -156,23 +173,33 @@ class Preferences:
 
     # function will open up the chosen files and combine them into a dictionary, then start the chosen study game
     def start_main(self):
-        self.pref_done.state(['disabled'])
         self.combine_dicts()
 
         if self.game_txt.get() == 'Multiple Choice':
             mc = MultipleChoice(referral_dict=self.combed_dict)
             mc.start_mc()
-            # self.destroy_pref()
         elif self.game_txt.get() == 'Write':
             w = Write(reference_dict=self.combed_dict)
             w.choose_q()
-            # self.destroy_pref()
         elif self.game_txt.get() == 'Type':
             t = Type(reference_dict=self.combed_dict)
             t.get_q_a()
         elif self.game_txt.get() == 'Map':
             k = MapAnimations(reference_dict=self.combed_dict)
             k.create()
+
+    def set_presets(self):
+        if presets['book'] != '':
+            self.book_txt_var.set(presets['book'])
+            if presets['chapter'] != '':
+                self.chapter_txt_var.set(presets['chapter'])
+                self.set_vocab_values(event=None)
+        if presets['game'] != '':
+            self.game_txt.set(presets['game'])
+
+        self.kanji_yn.set(presets['kanji'])
+        for i in presets['vocab']:
+            self.vocab_lbox.selection_set(i)
 
     def run(self):
         self.book_pref_combo()
@@ -182,6 +209,7 @@ class Preferences:
         self.game_pref_combo()
         self.pref_done_button()
         self.display()
+        self.set_presets()
 
 
 class MultipleChoice:
@@ -191,7 +219,8 @@ class MultipleChoice:
         self.turn_count = 0
         self.amnt_correct = 0
         self.amnt_incorrect = 0
-        self.m_choice_mainframe = ttk.Frame(mainframe)
+        self.mc_window = Toplevel(root)
+        self.m_choice_mainframe = ttk.Frame(self.mc_window)
         self.end_subframe = ttk.Frame(self.m_choice_mainframe)
         self.turn_disp = StringVar()
         self.q_disp = StringVar()
@@ -303,13 +332,13 @@ class MultipleChoice:
         self.start_mc()
 
     def destroy_mc(self):
-        self.m_choice_mainframe.destroy()
-        pref_done.state(['!disabled'])
+        self.mc_window.destroy()
 
 
 class Write:
     def __init__(self, reference_dict):
-        self.write_frame = ttk.Frame(mainframe, cursor="pencil")
+        self.write_window = Toplevel(root)
+        self.write_frame = ttk.Frame(self.write_window, cursor="pencil")
         self.reference_dict = reference_dict
         self.animation_frame = ttk.Frame(self.write_frame)
         self.animation_frame['borderwidth'] = 5
@@ -336,6 +365,7 @@ class Write:
         self.tag_num = 0
         self.tag = 'tag' + str(self.tag_num)
         self.end_widget_lst = []
+        self.line_color = 'black'
 
         self.canvas.bind("<Button-1>", self.savePosn)
         self.canvas.bind("<B1-Motion>", self.addLine)
@@ -369,6 +399,13 @@ class Write:
         self.enter_button.grid(column=3, row=2, sticky=W)
         self.quit_button.grid(column=5, row=2, sticky=E)
         self.show_ans_button.grid(column=4, row=2, sticky=W)
+        self.theme()
+
+    def theme(self):
+        if style.theme_use() == 'awdark':
+            self.canvas.configure(background='black')
+            self.animation_canvas.configure(background='black')
+            self.line_color = 'white'
 
     def clear_canv(self):
         self.canvas.delete('all')
@@ -378,7 +415,7 @@ class Write:
         self.lastx, self.lasty = event.x, event.y
 
     def addLine(self, event):
-        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True, width=1.5)
+        self.canvas.create_line((self.lastx, self.lasty, event.x, event.y), tags=self.tag, smooth=True, width=1.5, fill=self.line_color)
         self.savePosn(event)
 
     def undo(self):
@@ -398,7 +435,7 @@ class Write:
             self.animation_frame.update()
             time.sleep(0.25)
             for j in i:
-                self.animation_canvas.create_line((j[0], j[1], j[2], j[3]), smooth=True, width=1.5)
+                self.animation_canvas.create_line((j[0], j[1], j[2], j[3]), smooth=True, width=1.5, fill=self.line_color)
                 self.animation_frame.update()
                 # time.sleep(0.0001)
 
@@ -422,15 +459,15 @@ class Write:
             self.choose_q()
 
     def destroy_write(self):
-        self.write_frame.destroy()
-        pref_done.state(['!disabled'])
+        self.write_window.destroy()
 
 
 class Type:
     def __init__(self, reference_dict):
         self.reference_dict = reference_dict
         self.main_dict = deepcopy(self.reference_dict)
-        self.type_frame = ttk.Frame(mainframe)
+        self.type_window = Toplevel(root)
+        self.type_frame = ttk.Frame(self.type_window)
         self.end_subframe = ttk.Frame(self.type_frame)
         self.question_txt, self.entry_txt, self.correct_status_txt, self.turn_txt = StringVar(), StringVar(), StringVar(value=' '), StringVar()
         self.question_label = ttk.Label(self.type_frame, textvariable=self.question_txt)
@@ -517,15 +554,15 @@ class Type:
         
 
     def destroy_type(self):
-        self.type_frame.destroy()
-        pref_done.state(['!disabled'])
+        self.type_window.destroy()
 
 
 class MapAnimations:
     def __init__(self, reference_dict):
         self.reference_dict = reference_dict
         self.current_dict_index = 0
-        self.canvas_frame = ttk.Frame(mainframe)
+        self.map_window = Toplevel(root)
+        self.canvas_frame = ttk.Frame(self.map_window)
         self.canvas_frame['borderwidth'] = 5
         self.canvas_frame['relief'] = 'sunken'
         self.canvas = Canvas(self.canvas_frame, width=500, height=400)
@@ -627,13 +664,14 @@ class MapAnimations:
         self.start()
 
     def quit(self):
-        self.canvas_frame.destroy()
-        pref_done.state(['!disabled'])
+        self.map_window.destroy()
 
     def skip(self):
         self.encoded_lst = []
         self.canvas.delete('all')
         self.start()
+
+preferences = Preferences()
 
 root.option_add('*tearOff', 0)
 
@@ -643,20 +681,51 @@ root.config(menu=menubar)
 
 menu_look = Menu(menubar)
 menubar.add_cascade(menu=menu_look, label='Preferences')
-dark_mode = IntVar()
+dark_mode = BooleanVar()
+if style.theme_use() == 'awdark':
+    dark_mode.set(True)
 menu_look.add_checkbutton(label='Dark Mode', variable=dark_mode, onvalue=1, offvalue=0)
+
+def default_theme():
+    file = open("default_theme.txt", "w", encoding="utf8")
+    if dark_mode.get():
+        file.write('dark')
+    elif not dark_mode.get():
+        file.write('')
+    file.close()
+
+menu_look.add_command(label='Made current default.', command=default_theme)
 
 def to_dark(arg_one, arg_two, arg_three):
     if dark_mode.get():
-        print('hi')
-        style.configure(style='TFrame', background='black')
+        style.theme_use("awdark")
     elif not dark_mode.get():
-        print('bye')
-        style.configure(style='TFrame', background='white')
+        style.theme_use('vista')
 
 dark_mode.trace_add('write', to_dark)
+
+menu_presets = Menu(menubar)
+menubar.add_cascade(menu=menu_presets, label='Presets')
+    
+def new_preset():
+    dictstr = "presets = {\n'book' : '" + preferences.book_txt_var.get() + "', \n'chapter' : '" + preferences.chapter_txt_var.get() + "', \n'game' :'" + preferences.game_txt.get() + "', \n'kanji' : " +  str(preferences.kanji_yn.get()) + ", \n'vocab' : ["
+    for i in preferences.vocab_lbox.curselection():
+        dictstr += str(i) + ','
+    dictstr += '] }'
+
+    file = open('presets.py', 'w', encoding='utf8')
+    file.write(dictstr)
+    file.close()
+
+def reset_preset():
+    file = open('presets.py', 'w', encoding='utf8')
+    file.write("presets = {'book' : '',\n 'chapter' : '', \n'game' :'', \n'kanji' : True, \n'vocab' : [] }")
+    file.close()
+
+menu_presets.add_command(label='Set preset', command=new_preset)
+menu_presets.add_command(label='Reset preset', command=reset_preset)
 # End menu code
 
-Preferences().run()
+preferences.run()
 
 root.mainloop()
